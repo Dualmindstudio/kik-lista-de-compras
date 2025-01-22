@@ -8,6 +8,7 @@ interface ShoppingItemProps {
   quantity: number;
   category: string;
   completed: boolean;
+  emoji?: string;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -18,6 +19,7 @@ export function ShoppingItem({
   quantity,
   category,
   completed,
+  emoji,
   onToggle,
   onRemove,
 }: ShoppingItemProps) {
@@ -25,7 +27,7 @@ export function ShoppingItem({
     <div
       className={cn(
         "flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md animate-fade-in",
-        completed ? "bg-gray-50" : "bg-white"
+        completed ? "bg-green-50 border-green-100" : "bg-white hover:border-blue-200"
       )}
     >
       <div className="flex items-center gap-4">
@@ -35,13 +37,16 @@ export function ShoppingItem({
           onClick={() => onToggle(id)}
           className={cn(
             "rounded-full transition-colors",
-            completed && "bg-green-100 text-green-600 hover:bg-green-200"
+            completed 
+              ? "bg-green-100 text-green-600 hover:bg-green-200 hover:text-green-700" 
+              : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
           )}
         >
           <Check className="h-4 w-4" />
         </Button>
         <div className={cn("transition-opacity", completed && "opacity-50")}>
-          <p className={cn("font-medium", completed && "line-through")}>
+          <p className={cn("font-medium flex items-center gap-2", completed && "line-through")}>
+            {emoji && <span className="text-lg">{emoji}</span>}
             {name}
           </p>
           <p className="text-sm text-gray-500">

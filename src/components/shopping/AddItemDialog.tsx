@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 interface AddItemDialogProps {
   categories: string[];
-  onAddItem: (name: string, quantity: number, category: string) => void;
+  onAddItem: (name: string, quantity: number, category: string, emoji?: string) => void;
 }
 
 export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
@@ -28,6 +28,7 @@ export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState("Outros");
+  const [emoji, setEmoji] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,17 +37,18 @@ export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
       return;
     }
     
-    onAddItem(name.trim(), quantity, category);
+    onAddItem(name.trim(), quantity, category, emoji.trim() || undefined);
     setOpen(false);
     setName("");
     setQuantity(1);
     setCategory("Outros");
+    setEmoji("");
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4" /> Adicionar Item
         </Button>
       </DialogTrigger>
@@ -55,13 +57,24 @@ export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
           <DialogTitle>Adicionar Novo Item</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Input
-              placeholder="Nome do item"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full"
-            />
+          <div className="grid grid-cols-4 gap-4">
+            <div className="col-span-1">
+              <Input
+                placeholder="😋"
+                value={emoji}
+                onChange={(e) => setEmoji(e.target.value)}
+                className="w-full text-center"
+                maxLength={2}
+              />
+            </div>
+            <div className="col-span-3">
+              <Input
+                placeholder="Nome do item"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -89,7 +102,9 @@ export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
             </div>
           </div>
           <div className="flex justify-end">
-            <Button type="submit">Adicionar</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+              Adicionar
+            </Button>
           </div>
         </form>
       </DialogContent>
