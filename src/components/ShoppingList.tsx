@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Plus, Filter } from "lucide-react";
 import { CategoryFilter } from "./shopping/CategoryFilter";
 import { ShoppingItem } from "./shopping/ShoppingItem";
 import { AddItemDialog } from "./shopping/AddItemDialog";
+import { Button } from "./ui/button";
 
 interface ShoppingItem {
   id: string;
@@ -24,8 +26,16 @@ const categories = [
 ];
 
 const ShoppingList = () => {
-  const [items, setItems] = useState<ShoppingItem[]>([]);
+  const [items, setItems] = useState<ShoppingItem[]>(() => {
+    const savedItems = localStorage.getItem("shopping-items");
+    return savedItems ? JSON.parse(savedItems) : [];
+  });
   const [filterCategory, setFilterCategory] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("shopping-items", JSON.stringify(items));
+  }, [items]);
 
   const handleAddItem = (name: string, quantity: number, category: string, emoji?: string) => {
     const newItem: ShoppingItem = {
@@ -62,14 +72,32 @@ const ShoppingList = () => {
   const completedItems = filteredItems.filter(item => item.completed);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <AddItemDialog categories={categories} onAddItem={handleAddItem} />
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-8 animate-fade-in relative min-h-screen">
+      {/* Header com filtros - visível apenas em desktop */}
+      <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <AddItemDialog 
+          categories={categories} 
+          onAddItem={handleAddItem}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
         <CategoryFilter
           categories={categories}
           filterCategory={filterCategory}
           onFilterChange={setFilterCategory}
         />
+      </div>
+
+      {/* Header mobile */}
+      <div className="flex sm:hidden justify-end items-center mb-4">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full"
+          onClick={() => setFilterCategory(prev => prev === "all" ? categories[0] : "all")}
+        >
+          <Filter className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="space-y-8">
@@ -108,6 +136,17 @@ const ShoppingList = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Botão flutuante para mobile */}
+      <div className="fixed bottom-6 right-6 sm:hidden">
+        <Button
+          size="icon"
+          className="h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
       </div>
     </div>
   );

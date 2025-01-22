@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,14 +21,25 @@ import { toast } from "sonner";
 interface AddItemDialogProps {
   categories: string[];
   onAddItem: (name: string, quantity: number, category: string, emoji?: string) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddItemDialog({ categories, onAddItem, open, onOpenChange }: AddItemDialogProps) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState("Outros");
   const [emoji, setEmoji] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      // Reset form when dialog closes
+      setName("");
+      setQuantity(1);
+      setCategory("Outros");
+      setEmoji("");
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +49,14 @@ export function AddItemDialog({ categories, onAddItem }: AddItemDialogProps) {
     }
     
     onAddItem(name.trim(), quantity, category, emoji.trim() || undefined);
-    setOpen(false);
-    setName("");
-    setQuantity(1);
-    setCategory("Outros");
-    setEmoji("");
+    if (onOpenChange) {
+      onOpenChange(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild className="hidden sm:inline-flex">
         <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4" /> Adicionar Item
         </Button>
