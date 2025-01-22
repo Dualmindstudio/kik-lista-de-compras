@@ -21,26 +21,26 @@ interface ShoppingItem {
 }
 
 const categories = [
-  "Fruits",
-  "Vegetables",
-  "Meat",
-  "Dairy",
-  "Pantry",
-  "Beverages",
-  "Other",
+  "Frutas",
+  "Legumes",
+  "Carnes",
+  "Laticínios",
+  "Mercearia",
+  "Bebidas",
+  "Outros",
 ];
 
 const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [newItemName, setNewItemName] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState(1);
-  const [newItemCategory, setNewItemCategory] = useState("Other");
+  const [newItemCategory, setNewItemCategory] = useState("Outros");
   const [filterCategory, setFilterCategory] = useState("all");
 
   const addItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim()) {
-      toast.error("Please enter an item name");
+      toast.error("Por favor, digite o nome do item");
       return;
     }
     
@@ -55,7 +55,7 @@ const ShoppingList = () => {
     setItems([...items, newItem]);
     setNewItemName("");
     setNewItemQuantity(1);
-    toast.success("Item added to list");
+    toast.success("Item adicionado à lista");
   };
 
   const toggleItem = (id: string) => {
@@ -68,7 +68,7 @@ const ShoppingList = () => {
 
   const removeItem = (id: string) => {
     setItems(items.filter((item) => item.id !== id));
-    toast.success("Item removed from list");
+    toast.success("Item removido da lista");
   };
 
   const filteredItems = filterCategory === "all" 
@@ -82,7 +82,7 @@ const ShoppingList = () => {
           type="text"
           value={newItemName}
           onChange={(e) => setNewItemName(e.target.value)}
-          placeholder="Add new item..."
+          placeholder="Adicionar novo item..."
           className="flex-1 min-w-[200px]"
         />
         <Input
@@ -94,7 +94,7 @@ const ShoppingList = () => {
         />
         <Select value={newItemCategory} onValueChange={setNewItemCategory}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
@@ -105,7 +105,7 @@ const ShoppingList = () => {
           </SelectContent>
         </Select>
         <Button type="submit" className="gap-2">
-          <Plus className="h-4 w-4" /> Add Item
+          <Plus className="h-4 w-4" /> Adicionar Item
         </Button>
       </form>
 
@@ -113,10 +113,10 @@ const ShoppingList = () => {
         <Filter className="h-5 w-5 text-gray-500" />
         <Select value={filterCategory} onValueChange={setFilterCategory}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder="Filtrar por categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">Todas as Categorias</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
@@ -168,7 +168,7 @@ const ShoppingList = () => {
         ))}
         {filteredItems.length === 0 && (
           <div className="text-center py-12 text-gray-500">
-            No items in your shopping list
+            Nenhum item na sua lista de compras
           </div>
         )}
       </div>
