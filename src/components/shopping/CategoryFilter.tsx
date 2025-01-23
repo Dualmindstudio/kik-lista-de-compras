@@ -6,14 +6,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
   categories: string[];
   filterCategory: string;
   onFilterChange: (value: string) => void;
+  variant?: "desktop" | "mobile";
 }
 
-export function CategoryFilter({ categories, filterCategory, onFilterChange }: CategoryFilterProps) {
+export function CategoryFilter({ 
+  categories, 
+  filterCategory, 
+  onFilterChange,
+  variant = "desktop" 
+}: CategoryFilterProps) {
+  if (variant === "mobile") {
+    return (
+      <div className="flex gap-2 items-center">
+        <Button
+          variant={filterCategory === "all" ? "default" : "outline"}
+          size="sm"
+          className="whitespace-nowrap text-sm rounded-full"
+          onClick={() => onFilterChange("all")}
+        >
+          Todos
+        </Button>
+        {categories.map((category) => (
+          <Button
+            key={category}
+            variant={filterCategory === category ? "default" : "outline"}
+            size="sm"
+            className="whitespace-nowrap text-sm rounded-full"
+            onClick={() => onFilterChange(category)}
+          >
+            {category}
+          </Button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-4">
       <Filter className="h-5 w-5 text-gray-500" />

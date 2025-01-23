@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Plus, Filter } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CategoryFilter } from "./shopping/CategoryFilter";
 import { ShoppingItem } from "./shopping/ShoppingItem";
 import { AddItemDialog } from "./shopping/AddItemDialog";
@@ -72,7 +72,7 @@ const ShoppingList = () => {
   const completedItems = filteredItems.filter(item => item.completed);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 space-y-8 animate-fade-in relative min-h-screen">
+    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 space-y-4 sm:space-y-8 animate-fade-in relative min-h-screen">
       {/* Header com filtros - visível apenas em desktop */}
       <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <AddItemDialog 
@@ -85,24 +85,23 @@ const ShoppingList = () => {
           categories={categories}
           filterCategory={filterCategory}
           onFilterChange={setFilterCategory}
+          variant="desktop"
         />
       </div>
 
-      {/* Header mobile */}
-      <div className="flex sm:hidden justify-end items-center mb-4">
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full"
-          onClick={() => setFilterCategory(prev => prev === "all" ? categories[0] : "all")}
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
+      {/* Header mobile - Tags de filtro */}
+      <div className="flex sm:hidden overflow-x-auto pb-2 -mx-2 px-2">
+        <CategoryFilter
+          categories={categories}
+          filterCategory={filterCategory}
+          onFilterChange={setFilterCategory}
+          variant="mobile"
+        />
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-8">
         {/* Pending Items */}
-        <div className="space-y-4">
+        <div className="space-y-2 sm:space-y-4">
           {pendingItems.map((item) => (
             <ShoppingItem
               key={item.id}
@@ -120,7 +119,7 @@ const ShoppingList = () => {
 
         {/* Completed Items */}
         {completedItems.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             <div className="flex items-center gap-4 my-8">
               <div className="h-px flex-1 bg-gray-200" />
               <h3 className="text-lg font-medium text-gray-500">Itens comprados</h3>
@@ -139,7 +138,7 @@ const ShoppingList = () => {
       </div>
 
       {/* Botão flutuante para mobile */}
-      <div className="fixed bottom-6 right-6 sm:hidden">
+      <div className="fixed bottom-6 right-4 sm:hidden">
         <Button
           size="icon"
           className="h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
