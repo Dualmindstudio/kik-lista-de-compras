@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -19,6 +18,9 @@ export default function App() {
                 backgroundColor: '#3b82f6',
               },
               headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
             }}
           />
         </Stack.Navigator>
