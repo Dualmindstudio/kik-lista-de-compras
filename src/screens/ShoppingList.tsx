@@ -185,7 +185,7 @@ const ShoppingList = () => {
                 <IconButton
                   icon={item.completed ? "check" : "circle-outline"}
                   onPress={() => toggleItem(item.id)}
-                  color={item.completed ? "#22c55e" : "#3b82f6"}
+                  iconColor={item.completed ? "#22c55e" : "#3b82f6"}
                 />
                 <View>
                   <Text style={[
@@ -202,7 +202,7 @@ const ShoppingList = () => {
               <IconButton
                 icon="delete"
                 onPress={() => removeItem(item.id)}
-                color="#ef4444"
+                iconColor="#ef4444"
               />
             </Card.Content>
           </Card>
@@ -220,7 +220,7 @@ const ShoppingList = () => {
                     <IconButton
                       icon={item.completed ? "check" : "circle-outline"}
                       onPress={() => toggleItem(item.id)}
-                      color={item.completed ? "#22c55e" : "#3b82f6"}
+                      iconColor={item.completed ? "#22c55e" : "#3b82f6"}
                     />
                     <View>
                       <Text style={[
@@ -237,7 +237,7 @@ const ShoppingList = () => {
                   <IconButton
                     icon="delete"
                     onPress={() => removeItem(item.id)}
-                    color="#ef4444"
+                    iconColor="#ef4444"
                   />
                 </Card.Content>
               </Card>
