@@ -5,6 +5,7 @@ import { CategoryFilter } from "./shopping/CategoryFilter";
 import { ShoppingItem } from "./shopping/ShoppingItem";
 import { AddItemDialog } from "./shopping/AddItemDialog";
 import { Button } from "./ui/button";
+import { SplashScreen } from "./shopping/SplashScreen";
 
 interface ShoppingItem {
   id: string;
@@ -15,27 +16,44 @@ interface ShoppingItem {
   emoji?: string;
 }
 
-const categories = [
-  "Frutas",
-  "Legumes",
-  "Carnes",
-  "Laticínios",
-  "Mercearia",
-  "Bebidas",
-  "Outros",
-];
-
 const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     const savedItems = localStorage.getItem("shopping-items");
     return savedItems ? JSON.parse(savedItems) : [];
   });
+  
+  const [categories, setCategories] = useState<string[]>(() => {
+    const savedCategories = localStorage.getItem("shopping-categories");
+    return savedCategories ? JSON.parse(savedCategories) : [
+      "Frutas",
+      "Legumes",
+      "Carnes",
+      "Laticínios",
+      "Mercearia",
+      "Bebidas",
+      "Outros",
+    ];
+  });
+
   const [filterCategory, setFilterCategory] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     localStorage.setItem("shopping-items", JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    localStorage.setItem("shopping-categories", JSON.stringify(categories));
+  }, [categories]);
+
+  useEffect(() => {
+    // Hide splash screen after 2 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleAddItem = (name: string, quantity: number, category: string, emoji?: string) => {
     const newItem: ShoppingItem = {
@@ -64,6 +82,29 @@ const ShoppingList = () => {
     toast.success("Item removido da lista");
   };
 
+  const handleAddCategory = (newCategory: string) => {
+    if (categories.includes(newCategory)) {
+      toast.error("Esta categoria já existe!");
+      return;
+    }
+    setCategories([...categories, newCategory]);
+    toast.success("Categoria adicionada com sucesso!");
+  };
+
+  const handleEditCategory = (oldCategory: string, newCategory: string) => {
+    if (categories.includes(newCategory)) {
+      toast.error("Esta categoria já existe!");
+      return;
+    }
+    setCategories(categories.map(cat => cat === oldCategory ? newCategory : cat));
+    setItems(items.map(item => 
+      item.category === oldCategory 
+        ? { ...item, category: newCategory }
+        : item
+    ));
+    toast.success("Categoria editada com sucesso!");
+  };
+
   const filteredItems = filterCategory === "all" 
     ? items 
     : items.filter(item => item.category === filterCategory);
@@ -71,8 +112,12 @@ const ShoppingList = () => {
   const pendingItems = filteredItems.filter(item => !item.completed);
   const completedItems = filteredItems.filter(item => item.completed);
 
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
   return (
-    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 space-y-4 sm:space-y-8 animate-fade-in relative min-h-screen">
+    <div className="w-full max-w-4xl mx-auto px-1 sm:px-4 space-y-4 sm:space-y-8 animate-fade-in relative min-h-screen">
       {/* Header com filtros - visível apenas em desktop */}
       <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <AddItemDialog 
@@ -85,23 +130,27 @@ const ShoppingList = () => {
           categories={categories}
           filterCategory={filterCategory}
           onFilterChange={setFilterCategory}
+          onAddCategory={handleAddCategory}
+          onEditCategory={handleEditCategory}
           variant="desktop"
         />
       </div>
 
       {/* Header mobile - Tags de filtro */}
-      <div className="flex sm:hidden overflow-x-auto pb-2 -mx-2 px-2">
+      <div className="flex sm:hidden overflow-x-auto no-scrollbar pb-2">
         <CategoryFilter
           categories={categories}
           filterCategory={filterCategory}
           onFilterChange={setFilterCategory}
+          onAddCategory={handleAddCategory}
+          onEditCategory={handleEditCategory}
           variant="mobile"
         />
       </div>
 
       <div className="space-y-4 sm:space-y-8">
         {/* Pending Items */}
-        <div className="space-y-2 sm:space-y-4">
+        <div className="space-y-1 sm:space-y-4">
           {pendingItems.map((item) => (
             <ShoppingItem
               key={item.id}
@@ -119,7 +168,7 @@ const ShoppingList = () => {
 
         {/* Completed Items */}
         {completedItems.length > 0 && (
-          <div className="space-y-2 sm:space-y-4">
+          <div className="space-y-1 sm:space-y-4">
             <div className="flex items-center gap-4 my-8">
               <div className="h-px flex-1 bg-gray-200" />
               <h3 className="text-lg font-medium text-gray-500">Itens comprados</h3>
