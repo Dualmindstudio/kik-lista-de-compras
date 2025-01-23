@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,7 @@ export function CategoryFilter({
   const [newCategory, setNewCategory] = useState("");
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +41,10 @@ export function CategoryFilter({
       onAddCategory(newCategory.trim());
       setNewCategory("");
       setIsAdding(false);
+      // Scroll to start after adding
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollLeft = 0;
+      }
     }
   };
 
@@ -52,19 +57,29 @@ export function CategoryFilter({
     }
   };
 
+  // Reset scroll position when closing add/edit forms
+  useEffect(() => {
+    if (!isAdding && !editingCategory && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = 0;
+    }
+  }, [isAdding, editingCategory]);
+
   if (variant === "mobile") {
     return (
-      <div className="flex gap-2 items-center">
+      <div 
+        ref={scrollContainerRef}
+        className="flex gap-2 items-center overflow-x-auto no-scrollbar px-1"
+      >
         <Button
           variant={filterCategory === "all" ? "default" : "outline"}
           size="sm"
-          className="whitespace-nowrap text-sm rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+          className="whitespace-nowrap text-sm rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 flex-shrink-0"
           onClick={() => onFilterChange("all")}
         >
           Todos
         </Button>
         {categories.map((category) => (
-          <div key={category} className="relative group">
+          <div key={category} className="relative group flex-shrink-0">
             {editingCategory === category ? (
               <form onSubmit={handleEditSubmit} className="flex items-center gap-1">
                 <Input
@@ -73,7 +88,7 @@ export function CategoryFilter({
                   className="h-8 w-24 text-sm"
                   autoFocus
                 />
-                <Button type="submit" size="sm" variant="ghost">
+                <Button type="submit" size="sm" variant="ghost" className="flex-shrink-0">
                   ✓
                 </Button>
               </form>
@@ -82,7 +97,7 @@ export function CategoryFilter({
                 variant={filterCategory === category ? "default" : "outline"}
                 size="sm"
                 className={cn(
-                  "whitespace-nowrap text-sm rounded-full",
+                  "whitespace-nowrap text-sm rounded-full flex-shrink-0",
                   filterCategory === category 
                     ? "bg-blue-50 text-blue-600" 
                     : "hover:bg-blue-50 hover:text-blue-600"
@@ -99,7 +114,7 @@ export function CategoryFilter({
           </div>
         ))}
         {isAdding ? (
-          <form onSubmit={handleAddSubmit} className="flex items-center gap-1">
+          <form onSubmit={handleAddSubmit} className="flex items-center gap-1 flex-shrink-0">
             <Input
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
@@ -107,7 +122,7 @@ export function CategoryFilter({
               placeholder="Nova categoria"
               autoFocus
             />
-            <Button type="submit" size="sm" variant="ghost">
+            <Button type="submit" size="sm" variant="ghost" className="flex-shrink-0">
               ✓
             </Button>
           </form>
@@ -115,7 +130,7 @@ export function CategoryFilter({
           <Button
             variant="outline"
             size="sm"
-            className="whitespace-nowrap text-sm rounded-full"
+            className="whitespace-nowrap text-sm rounded-full flex-shrink-0"
             onClick={() => setIsAdding(true)}
           >
             <PlusCircle className="h-4 w-4" />

@@ -117,9 +117,9 @@ const ShoppingList = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-1 sm:px-4 space-y-4 sm:space-y-8 animate-fade-in relative min-h-screen">
+    <div className="w-full max-w-4xl mx-auto px-1 space-y-4 sm:space-y-8 animate-fade-in relative min-h-screen">
       {/* Header com filtros - visível apenas em desktop */}
-      <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
         <AddItemDialog 
           categories={categories} 
           onAddItem={handleAddItem}
@@ -137,7 +137,7 @@ const ShoppingList = () => {
       </div>
 
       {/* Header mobile - Tags de filtro */}
-      <div className="flex sm:hidden overflow-x-auto no-scrollbar pb-2">
+      <div className="flex sm:hidden overflow-x-auto no-scrollbar">
         <CategoryFilter
           categories={categories}
           filterCategory={filterCategory}
@@ -148,7 +148,7 @@ const ShoppingList = () => {
         />
       </div>
 
-      <div className="space-y-4 sm:space-y-8">
+      <div className="space-y-4 sm:space-y-8 px-1">
         {/* Pending Items */}
         <div className="space-y-1 sm:space-y-4">
           {pendingItems.map((item) => (
