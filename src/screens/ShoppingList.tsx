@@ -153,7 +153,8 @@ const ShoppingList = () => {
           <Chip
             key={category}
             selected={filterCategory === category}
-            onPress={() => setFilterCategory(={styles.chip}
+            onPress={() => setFilterCategory(category)}
+            style={styles.chip}
           >
             {category}
           </Chip>
@@ -280,8 +281,6 @@ const ShoppingList = () => {
                 <Button
                   mode="outlined"
                   onPress={() => {
-                    // Aqui você pode adicionar um picker de categoria
-                    // Por simplicidade, estamos usando o primeiro item
                     setNewItemCategory(categories[0]);
                   }}
                 >
