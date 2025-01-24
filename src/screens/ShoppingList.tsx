@@ -332,10 +332,9 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
   },
   chip: {
-    marginRight: 8,
+    marginRight: 4, // Reduced from 8 to 4
   },
   addCategoryContainer: {
     flexDirection: 'row',
@@ -347,10 +346,11 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8, // Reduced from 12 to 8
   },
   card: {
-    marginBottom: 8,
+    marginBottom: 4, // Reduced from 8 to 4
+    marginHorizontal: 4, // Added small horizontal margin
   },
   completedCard: {
     backgroundColor: '#f0fdf4',
