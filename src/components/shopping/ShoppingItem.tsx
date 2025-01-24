@@ -11,6 +11,7 @@ interface ShoppingItemProps {
   emoji?: string;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
+  onEdit?: () => void;
 }
 
 export function ShoppingItem({
@@ -22,13 +23,19 @@ export function ShoppingItem({
   emoji,
   onToggle,
   onRemove,
+  onEdit,
 }: ShoppingItemProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md animate-fade-in",
+        "flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md animate-fade-in cursor-pointer",
         completed ? "bg-green-50 border-green-100" : "bg-white hover:border-blue-200"
       )}
+      onClick={(e) => {
+        // Prevent click when clicking buttons
+        if ((e.target as HTMLElement).closest('button')) return;
+        onEdit?.();
+      }}
     >
       <div className="flex items-center gap-4">
         <Button

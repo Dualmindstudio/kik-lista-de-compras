@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { CategoryFilter } from "./shopping/CategoryFilter";
 import { ShoppingItem } from "./shopping/ShoppingItem";
 import { AddItemDialog } from "./shopping/AddItemDialog";
+import { EditItemDialog } from "./shopping/EditItemDialog";
 import { Button } from "./ui/button";
 import { SplashScreen } from "./shopping/SplashScreen";
 
@@ -38,6 +39,7 @@ const ShoppingList = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
 
   useEffect(() => {
     localStorage.setItem("shopping-items", JSON.stringify(items));
@@ -67,6 +69,15 @@ const ShoppingList = () => {
     
     setItems([...items, newItem]);
     toast.success("Item adicionado à lista");
+  };
+
+  const handleEditItem = (id: string, name: string, category: string, emoji?: string) => {
+    setItems(items.map(item => 
+      item.id === id 
+        ? { ...item, name, category, emoji }
+        : item
+    ));
+    toast.success("Item atualizado com sucesso");
   };
 
   const toggleItem = (id: string) => {
@@ -157,6 +168,7 @@ const ShoppingList = () => {
               {...item}
               onToggle={toggleItem}
               onRemove={removeItem}
+              onEdit={() => setEditingItem(item)}
             />
           ))}
           {pendingItems.length === 0 && (
@@ -180,11 +192,23 @@ const ShoppingList = () => {
                 {...item}
                 onToggle={toggleItem}
                 onRemove={removeItem}
+                onEdit={() => setEditingItem(item)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Edit Dialog */}
+      {editingItem && (
+        <EditItemDialog
+          open={!!editingItem}
+          onOpenChange={(open) => !open && setEditingItem(null)}
+          item={editingItem}
+          categories={categories}
+          onEdit={handleEditItem}
+        />
+      )}
 
       {/* Botão flutuante para mobile */}
       <div className="fixed bottom-6 right-4 sm:hidden">
