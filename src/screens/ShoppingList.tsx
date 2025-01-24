@@ -331,7 +331,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   categoriesContainer: {
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   chip: {
     marginRight: 8,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    padding: 8,
+    paddingHorizontal: 12,
   },
   card: {
     marginBottom: 8,
