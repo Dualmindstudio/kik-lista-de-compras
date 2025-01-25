@@ -18,7 +18,6 @@ export const useShoppingItems = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        setIsLoading(true);
         console.log("Fetching items from Supabase...");
         
         const { data, error } = await supabase
@@ -42,28 +41,7 @@ export const useShoppingItems = () => {
       }
     };
 
-    const initializeSupabase = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Supabase session:", session ? "Active" : "No session");
-        
-        if (!session) {
-          const { error } = await supabase.auth.signInAnonymously();
-          if (error) {
-            console.error("Anonymous auth error:", error);
-            toast.error("Erro ao inicializar sessão");
-            return;
-          }
-        }
-        
-        await fetchItems();
-      } catch (err) {
-        console.error("Initialization error:", err);
-        toast.error("Erro ao inicializar aplicação");
-      }
-    };
-
-    initializeSupabase();
+    fetchItems();
 
     const subscription = supabase
       .channel('shopping_items_changes')
@@ -95,70 +73,64 @@ export const useShoppingItems = () => {
   }, []);
 
   const addItem = async (name: string, quantity: number, category: string) => {
-    const newItem = {
-      name,
-      quantity,
-      category,
-      completed: false,
-      user_id: (await supabase.auth.getUser()).data.user?.id
-    };
-    
-    const { error } = await supabase
-      .from('shopping_items')
-      .insert([newItem]);
+    try {
+      const { error } = await supabase
+        .from('shopping_items')
+        .insert([{ name, quantity, category, completed: false }]);
 
-    if (error) {
-      toast.error("Erro ao adicionar item");
+      if (error) throw error;
+      toast.success("Item adicionado à lista");
+    } catch (error) {
       console.error("Error adding item:", error);
-      return;
+      toast.error("Erro ao adicionar item");
     }
-
-    toast.success("Item adicionado à lista");
   };
 
   const editItem = async (id: string, name: string, category: string) => {
-    const { error } = await supabase
-      .from('shopping_items')
-      .update({ name, category })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('shopping_items')
+        .update({ name, category })
+        .eq('id', id);
 
-    if (error) {
-      toast.error("Erro ao atualizar item");
+      if (error) throw error;
+      toast.success("Item atualizado com sucesso");
+    } catch (error) {
       console.error("Error updating item:", error);
-      return;
+      toast.error("Erro ao atualizar item");
     }
-
-    toast.success("Item atualizado com sucesso");
   };
 
   const toggleItem = async (id: string) => {
-    const item = items.find(item => item.id === id);
-    if (!item) return;
+    try {
+      const item = items.find(item => item.id === id);
+      if (!item) return;
 
-    const { error } = await supabase
-      .from('shopping_items')
-      .update({ completed: !item.completed })
-      .eq('id', id);
+      const { error } = await supabase
+        .from('shopping_items')
+        .update({ completed: !item.completed })
+        .eq('id', id);
 
-    if (error) {
-      toast.error("Erro ao atualizar item");
+      if (error) throw error;
+    } catch (error) {
       console.error("Error toggling item:", error);
+      toast.error("Erro ao atualizar item");
     }
   };
 
   const removeItem = async (id: string) => {
-    const { error } = await supabase
-      .from('shopping_items')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('shopping_items')
+        .delete()
+        .eq('id', id);
 
-    if (error) {
-      toast.error("Erro ao remover item");
+      if (error) throw error;
+      toast.success("Item removido da lista");
+    } catch (error) {
       console.error("Error removing item:", error);
-      return;
+      toast.error("Erro ao remover item");
     }
-
-    toast.success("Item removido da lista");
   };
 
   return {
