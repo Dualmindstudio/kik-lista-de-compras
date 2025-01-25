@@ -36,24 +36,58 @@ const ShoppingList = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchItems = async () => {
-      const { data, error } = await supabase
-        .from('shopping_items')
-        .select('*')
-        .order('created_at', { ascending: true });
+      try {
+        setIsLoading(true);
+        console.log("Fetching items from Supabase...");
+        
+        const { data, error } = await supabase
+          .from('shopping_items')
+          .select('*')
+          .order('created_at', { ascending: true });
 
-      if (error) {
-        toast.error("Erro ao carregar itens");
-        console.error("Error fetching items:", error);
-        return;
+        if (error) {
+          console.error("Supabase error:", error);
+          toast.error("Erro ao carregar itens: " + error.message);
+          return;
+        }
+
+        console.log("Items fetched successfully:", data);
+        setItems(data || []);
+      } catch (err) {
+        console.error("Error in fetchItems:", err);
+        toast.error("Erro ao carregar itens. Por favor, tente novamente.");
+      } finally {
+        setIsLoading(false);
       }
-
-      setItems(data || []);
     };
 
-    fetchItems();
+    // Inicializar conexão com Supabase e buscar itens
+    const initializeSupabase = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Supabase session:", session ? "Active" : "No session");
+        
+        if (!session) {
+          const { error } = await supabase.auth.signInAnonymously();
+          if (error) {
+            console.error("Anonymous auth error:", error);
+            toast.error("Erro ao inicializar sessão");
+            return;
+          }
+        }
+        
+        await fetchItems();
+      } catch (err) {
+        console.error("Initialization error:", err);
+        toast.error("Erro ao inicializar aplicação");
+      }
+    };
+
+    initializeSupabase();
 
     // Inscrever-se para atualizações em tempo real
     const subscription = supabase
@@ -65,7 +99,7 @@ const ShoppingList = () => {
           table: 'shopping_items' 
         }, 
         (payload) => {
-          console.log("Realtime update:", payload);
+          console.log("Realtime update received:", payload);
           if (payload.eventType === 'INSERT') {
             setItems(current => [...current, payload.new as ShoppingItem]);
           } else if (payload.eventType === 'DELETE') {
@@ -194,6 +228,14 @@ const ShoppingList = () => {
 
   if (showSplash) {
     return <SplashScreen />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
