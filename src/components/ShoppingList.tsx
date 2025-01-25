@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { CategoryFilter } from "./shopping/CategoryFilter";
 import { AddItemDialog } from "./shopping/AddItemDialog";
 import { EditItemDialog } from "./shopping/EditItemDialog";
