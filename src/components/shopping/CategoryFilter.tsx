@@ -41,7 +41,6 @@ export function CategoryFilter({
       onAddCategory(newCategory.trim());
       setNewCategory("");
       setIsAdding(false);
-      // Scroll to start after adding
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollLeft = 0;
       }
@@ -57,7 +56,6 @@ export function CategoryFilter({
     }
   };
 
-  // Reset scroll position when closing add/edit forms
   useEffect(() => {
     if (!isAdding && !editingCategory && scrollContainerRef.current) {
       scrollContainerRef.current.scrollLeft = 0;
@@ -68,7 +66,7 @@ export function CategoryFilter({
     return (
       <div 
         ref={scrollContainerRef}
-        className="flex gap-2 items-center overflow-x-auto no-scrollbar px-1"
+        className="flex gap-2 items-center overflow-x-auto no-scrollbar"
       >
         <Button
           variant={filterCategory === "all" ? "default" : "outline"}
