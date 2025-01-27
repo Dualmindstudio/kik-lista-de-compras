@@ -68,7 +68,7 @@ export function CategoryFilter({
     return (
       <div 
         ref={scrollContainerRef}
-        className="flex gap-2 items-center overflow-x-auto no-scrollbar px-1"
+        className="flex gap-2 items-center overflow-x-auto no-scrollbar px-1 py-2"
       >
         <Button
           variant={filterCategory === "all" ? "default" : "outline"}
