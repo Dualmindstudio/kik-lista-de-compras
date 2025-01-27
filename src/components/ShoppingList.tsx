@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { CategoryFilter } from "./shopping/CategoryFilter";
 import { ShoppingItem } from "./shopping/ShoppingItem";
 import { AddItemDialog } from "./shopping/AddItemDialog";
@@ -15,10 +14,15 @@ interface ShoppingItem {
   quantity: number;
   category: string;
   completed: boolean;
+  emoji?: string;
 }
 
 const ShoppingList = () => {
-  const [items, setItems] = useState<ShoppingItem[]>([]);
+  const [items, setItems] = useState<ShoppingItem[]>(() => {
+    const savedItems = localStorage.getItem("shopping-items");
+    return savedItems ? JSON.parse(savedItems) : [];
+  });
+  
   const [categories, setCategories] = useState<string[]>(() => {
     const savedCategories = localStorage.getItem("shopping-categories");
     return savedCategories ? JSON.parse(savedCategories) : [
@@ -38,127 +42,54 @@ const ShoppingList = () => {
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      const { data, error } = await supabase
-        .from('shopping_items')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        toast.error("Erro ao carregar itens");
-        console.error("Error fetching items:", error);
-        return;
-      }
-
-      setItems(data || []);
-    };
-
-    fetchItems();
-
-    // Inscrever-se para atualizações em tempo real
-    const subscription = supabase
-      .channel('shopping_items_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'shopping_items' 
-        }, 
-        (payload) => {
-          console.log("Realtime update:", payload);
-          if (payload.eventType === 'INSERT') {
-            setItems(current => [...current, payload.new as ShoppingItem]);
-          } else if (payload.eventType === 'DELETE') {
-            setItems(current => current.filter(item => item.id !== payload.old.id));
-          } else if (payload.eventType === 'UPDATE') {
-            setItems(current => 
-              current.map(item => 
-                item.id === payload.new.id ? payload.new as ShoppingItem : item
-              )
-            );
-          }
-        })
-      .subscribe();
-
-    // Hide splash screen after 2 seconds
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timer);
-    };
-  }, []);
+    localStorage.setItem("shopping-items", JSON.stringify(items));
+  }, [items]);
 
   useEffect(() => {
     localStorage.setItem("shopping-categories", JSON.stringify(categories));
   }, [categories]);
 
-  const handleAddItem = async (name: string, quantity: number, category: string) => {
-    const newItem = {
+  useEffect(() => {
+    // Hide splash screen after 2 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleAddItem = (name: string, quantity: number, category: string, emoji?: string) => {
+    const newItem: ShoppingItem = {
+      id: Date.now().toString(),
       name,
       quantity,
       category,
       completed: false,
-      user_id: (await supabase.auth.getUser()).data.user?.id
+      emoji,
     };
     
-    const { error } = await supabase
-      .from('shopping_items')
-      .insert([newItem]);
-
-    if (error) {
-      toast.error("Erro ao adicionar item");
-      console.error("Error adding item:", error);
-      return;
-    }
-
+    setItems([...items, newItem]);
     toast.success("Item adicionado à lista");
   };
 
-  const handleEditItem = async (id: string, name: string, category: string) => {
-    const { error } = await supabase
-      .from('shopping_items')
-      .update({ name, category })
-      .eq('id', id);
-
-    if (error) {
-      toast.error("Erro ao atualizar item");
-      console.error("Error updating item:", error);
-      return;
-    }
-
+  const handleEditItem = (id: string, name: string, category: string, emoji?: string) => {
+    setItems(items.map(item => 
+      item.id === id 
+        ? { ...item, name, category, emoji }
+        : item
+    ));
     toast.success("Item atualizado com sucesso");
   };
 
-  const toggleItem = async (id: string) => {
-    const item = items.find(item => item.id === id);
-    if (!item) return;
-
-    const { error } = await supabase
-      .from('shopping_items')
-      .update({ completed: !item.completed })
-      .eq('id', id);
-
-    if (error) {
-      toast.error("Erro ao atualizar item");
-      console.error("Error toggling item:", error);
-    }
+  const toggleItem = (id: string) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, completed: !item.completed } : item
+      )
+    );
   };
 
-  const removeItem = async (id: string) => {
-    const { error } = await supabase
-      .from('shopping_items')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast.error("Erro ao remover item");
-      console.error("Error removing item:", error);
-      return;
-    }
-
+  const removeItem = (id: string) => {
+    setItems(items.filter((item) => item.id !== id));
     toast.success("Item removido da lista");
   };
 
