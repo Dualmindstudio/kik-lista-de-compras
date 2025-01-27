@@ -125,7 +125,7 @@ const ShoppingList = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 animate-fade-in relative min-h-screen">
+    <div className="w-full max-w-4xl mx-auto px-2 animate-fade-in relative min-h-screen">
       <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <AddItemDialog 
           categories={categories} 
