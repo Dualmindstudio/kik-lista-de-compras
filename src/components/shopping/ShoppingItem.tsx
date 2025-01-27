@@ -8,7 +8,6 @@ interface ShoppingItemProps {
   quantity: number;
   category: string;
   completed: boolean;
-  emoji?: string;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   onEdit?: () => void;
@@ -20,7 +19,6 @@ export function ShoppingItem({
   quantity,
   category,
   completed,
-  emoji,
   onToggle,
   onRemove,
   onEdit,
@@ -32,7 +30,6 @@ export function ShoppingItem({
         completed ? "bg-green-50 border-green-100" : "bg-white hover:border-blue-200"
       )}
       onClick={(e) => {
-        // Prevent click when clicking buttons
         if ((e.target as HTMLElement).closest('button')) return;
         onEdit?.();
       }}
@@ -52,8 +49,7 @@ export function ShoppingItem({
           <Check className="h-4 w-4" />
         </Button>
         <div className={cn("transition-opacity", completed && "opacity-50")}>
-          <p className={cn("font-medium flex items-center gap-2", completed && "line-through")}>
-            {emoji && <span className="text-lg">{emoji}</span>}
+          <p className={cn("font-medium", completed && "line-through")}>
             {name}
           </p>
           <p className="text-sm text-gray-500">

@@ -14,7 +14,6 @@ interface ShoppingItem {
   quantity: number;
   category: string;
   completed: boolean;
-  emoji?: string;
 }
 
 const ShoppingList = () => {
@@ -50,31 +49,29 @@ const ShoppingList = () => {
   }, [categories]);
 
   useEffect(() => {
-    // Hide splash screen after 2 seconds
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleAddItem = (name: string, quantity: number, category: string, emoji?: string) => {
+  const handleAddItem = (name: string, quantity: number, category: string) => {
     const newItem: ShoppingItem = {
       id: Date.now().toString(),
       name,
       quantity,
       category,
       completed: false,
-      emoji,
     };
     
     setItems([...items, newItem]);
     toast.success("Item adicionado à lista");
   };
 
-  const handleEditItem = (id: string, name: string, category: string, emoji?: string) => {
+  const handleEditItem = (id: string, name: string, category: string) => {
     setItems(items.map(item => 
       item.id === id 
-        ? { ...item, name, category, emoji }
+        ? { ...item, name, category }
         : item
     ));
     toast.success("Item atualizado com sucesso");
@@ -128,9 +125,8 @@ const ShoppingList = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-1 space-y-4 sm:space-y-8 animate-fade-in relative min-h-screen">
-      {/* Header com filtros - visível apenas em desktop */}
-      <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
+    <div className="w-full max-w-4xl mx-auto animate-fade-in relative min-h-screen">
+      <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <AddItemDialog 
           categories={categories} 
           onAddItem={handleAddItem}
@@ -147,7 +143,6 @@ const ShoppingList = () => {
         />
       </div>
 
-      {/* Header mobile - Tags de filtro */}
       <div className="flex sm:hidden overflow-x-auto no-scrollbar">
         <CategoryFilter
           categories={categories}
@@ -159,10 +154,31 @@ const ShoppingList = () => {
         />
       </div>
 
-      <div className="space-y-4 sm:space-y-8 px-1">
-        {/* Pending Items */}
-        <div className="space-y-1 sm:space-y-4">
-          {pendingItems.map((item) => (
+      <div className="space-y-2 sm:space-y-4">
+        {pendingItems.map((item) => (
+          <ShoppingItem
+            key={item.id}
+            {...item}
+            onToggle={toggleItem}
+            onRemove={removeItem}
+            onEdit={() => setEditingItem(item)}
+          />
+        ))}
+        {pendingItems.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            Nenhum item pendente na sua lista de compras
+          </div>
+        )}
+      </div>
+
+      {completedItems.length > 0 && (
+        <div className="space-y-2 sm:space-y-4">
+          <div className="flex items-center gap-4 my-4">
+            <div className="h-px flex-1 bg-gray-200" />
+            <h3 className="text-lg font-medium text-gray-500">Itens comprados</h3>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+          {completedItems.map((item) => (
             <ShoppingItem
               key={item.id}
               {...item}
@@ -171,35 +187,9 @@ const ShoppingList = () => {
               onEdit={() => setEditingItem(item)}
             />
           ))}
-          {pendingItems.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              Nenhum item pendente na sua lista de compras
-            </div>
-          )}
         </div>
+      )}
 
-        {/* Completed Items */}
-        {completedItems.length > 0 && (
-          <div className="space-y-1 sm:space-y-4">
-            <div className="flex items-center gap-4 my-8">
-              <div className="h-px flex-1 bg-gray-200" />
-              <h3 className="text-lg font-medium text-gray-500">Itens comprados</h3>
-              <div className="h-px flex-1 bg-gray-200" />
-            </div>
-            {completedItems.map((item) => (
-              <ShoppingItem
-                key={item.id}
-                {...item}
-                onToggle={toggleItem}
-                onRemove={removeItem}
-                onEdit={() => setEditingItem(item)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Edit Dialog */}
       {editingItem && (
         <EditItemDialog
           open={!!editingItem}
@@ -210,7 +200,6 @@ const ShoppingList = () => {
         />
       )}
 
-      {/* Botão flutuante para mobile */}
       <div className="fixed bottom-6 right-4 sm:hidden">
         <Button
           size="icon"
