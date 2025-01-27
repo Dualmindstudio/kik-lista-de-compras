@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { CategoryFilter } from "./shopping/CategoryFilter";
+import { ShoppingItem } from "./shopping/ShoppingItem";
 import { AddItemDialog } from "./shopping/AddItemDialog";
 import { EditItemDialog } from "./shopping/EditItemDialog";
 import { Button } from "./ui/button";
 import { SplashScreen } from "./shopping/SplashScreen";
-import { ItemsList } from "./shopping/ItemsList";
-import { useShoppingItems, type ShoppingItem } from "@/hooks/useShoppingItems";
+
+interface ShoppingItem {
+  id: string;
+  name: string;
+  quantity: number;
+  category: string;
+  completed: boolean;
+}
 
 const ShoppingList = () => {
-  const { items, isLoading, addItem, editItem, toggleItem, removeItem } = useShoppingItems();
+  const [items, setItems] = useState<ShoppingItem[]>([]);
   const [categories, setCategories] = useState<string[]>(() => {
     const savedCategories = localStorage.getItem("shopping-categories");
     return savedCategories ? JSON.parse(savedCategories) : [
@@ -30,16 +38,129 @@ const ShoppingList = () => {
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
 
   useEffect(() => {
-    localStorage.setItem("shopping-categories", JSON.stringify(categories));
-  }, [categories]);
+    const fetchItems = async () => {
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-  useEffect(() => {
+      if (error) {
+        toast.error("Erro ao carregar itens");
+        console.error("Error fetching items:", error);
+        return;
+      }
+
+      setItems(data || []);
+    };
+
+    fetchItems();
+
+    // Inscrever-se para atualizações em tempo real
+    const subscription = supabase
+      .channel('shopping_items_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'shopping_items' 
+        }, 
+        (payload) => {
+          console.log("Realtime update:", payload);
+          if (payload.eventType === 'INSERT') {
+            setItems(current => [...current, payload.new as ShoppingItem]);
+          } else if (payload.eventType === 'DELETE') {
+            setItems(current => current.filter(item => item.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setItems(current => 
+              current.map(item => 
+                item.id === payload.new.id ? payload.new as ShoppingItem : item
+              )
+            );
+          }
+        })
+      .subscribe();
+
+    // Hide splash screen after 2 seconds
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("shopping-categories", JSON.stringify(categories));
+  }, [categories]);
+
+  const handleAddItem = async (name: string, quantity: number, category: string) => {
+    const newItem = {
+      name,
+      quantity,
+      category,
+      completed: false,
+      user_id: (await supabase.auth.getUser()).data.user?.id
+    };
+    
+    const { error } = await supabase
+      .from('shopping_items')
+      .insert([newItem]);
+
+    if (error) {
+      toast.error("Erro ao adicionar item");
+      console.error("Error adding item:", error);
+      return;
+    }
+
+    toast.success("Item adicionado à lista");
+  };
+
+  const handleEditItem = async (id: string, name: string, category: string) => {
+    const { error } = await supabase
+      .from('shopping_items')
+      .update({ name, category })
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Erro ao atualizar item");
+      console.error("Error updating item:", error);
+      return;
+    }
+
+    toast.success("Item atualizado com sucesso");
+  };
+
+  const toggleItem = async (id: string) => {
+    const item = items.find(item => item.id === id);
+    if (!item) return;
+
+    const { error } = await supabase
+      .from('shopping_items')
+      .update({ completed: !item.completed })
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Erro ao atualizar item");
+      console.error("Error toggling item:", error);
+    }
+  };
+
+  const removeItem = async (id: string) => {
+    const { error } = await supabase
+      .from('shopping_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Erro ao remover item");
+      console.error("Error removing item:", error);
+      return;
+    }
+
+    toast.success("Item removido da lista");
+  };
 
   const handleAddCategory = (newCategory: string) => {
     if (categories.includes(newCategory)) {
@@ -56,6 +177,11 @@ const ShoppingList = () => {
       return;
     }
     setCategories(categories.map(cat => cat === oldCategory ? newCategory : cat));
+    setItems(items.map(item => 
+      item.category === oldCategory 
+        ? { ...item, category: newCategory }
+        : item
+    ));
     toast.success("Categoria editada com sucesso!");
   };
 
@@ -63,16 +189,11 @@ const ShoppingList = () => {
     ? items 
     : items.filter(item => item.category === filterCategory);
 
+  const pendingItems = filteredItems.filter(item => !item.completed);
+  const completedItems = filteredItems.filter(item => item.completed);
+
   if (showSplash) {
     return <SplashScreen />;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
   }
 
   return (
@@ -81,7 +202,7 @@ const ShoppingList = () => {
       <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
         <AddItemDialog 
           categories={categories} 
-          onAddItem={addItem}
+          onAddItem={handleAddItem}
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
         />
@@ -107,12 +228,45 @@ const ShoppingList = () => {
         />
       </div>
 
-      <ItemsList 
-        items={filteredItems}
-        onToggle={toggleItem}
-        onRemove={removeItem}
-        onEdit={setEditingItem}
-      />
+      <div className="space-y-4 sm:space-y-8 px-1">
+        {/* Pending Items */}
+        <div className="space-y-1 sm:space-y-4">
+          {pendingItems.map((item) => (
+            <ShoppingItem
+              key={item.id}
+              {...item}
+              onToggle={toggleItem}
+              onRemove={removeItem}
+              onEdit={() => setEditingItem(item)}
+            />
+          ))}
+          {pendingItems.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              Nenhum item pendente na sua lista de compras
+            </div>
+          )}
+        </div>
+
+        {/* Completed Items */}
+        {completedItems.length > 0 && (
+          <div className="space-y-1 sm:space-y-4">
+            <div className="flex items-center gap-4 my-8">
+              <div className="h-px flex-1 bg-gray-200" />
+              <h3 className="text-lg font-medium text-gray-500">Itens comprados</h3>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+            {completedItems.map((item) => (
+              <ShoppingItem
+                key={item.id}
+                {...item}
+                onToggle={toggleItem}
+                onRemove={removeItem}
+                onEdit={() => setEditingItem(item)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Edit Dialog */}
       {editingItem && (
@@ -121,7 +275,7 @@ const ShoppingList = () => {
           onOpenChange={(open) => !open && setEditingItem(null)}
           item={editingItem}
           categories={categories}
-          onEdit={editItem}
+          onEdit={handleEditItem}
         />
       )}
 
