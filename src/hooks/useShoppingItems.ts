@@ -72,11 +72,17 @@ export const useShoppingItems = () => {
     };
   }, []);
 
-  const addItem = async (name: string, quantity: number, category: string) => {
+  const addItem = async (name: string, quantity: number, category: string, emoji?: string) => {
     try {
       const { error } = await supabase
         .from('shopping_items')
-        .insert([{ name, quantity, category, completed: false }]);
+        .insert([{ 
+          name, 
+          quantity, 
+          category, 
+          completed: false,
+          emoji
+        }]);
 
       if (error) throw error;
       toast.success("Item adicionado à lista");
@@ -86,11 +92,11 @@ export const useShoppingItems = () => {
     }
   };
 
-  const editItem = async (id: string, name: string, category: string) => {
+  const editItem = async (id: string, name: string, category: string, emoji?: string) => {
     try {
       const { error } = await supabase
         .from('shopping_items')
-        .update({ name, category })
+        .update({ name, category, emoji })
         .eq('id', id);
 
       if (error) throw error;
